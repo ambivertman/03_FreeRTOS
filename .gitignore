@@ -1,10 +1,7 @@
 .vscode/
 DebugConfig/
-FreeRTOS/
-Lib/
 Listings/
 Objects/
-STM32Core/
 .clangd
 *.uvguix.刘英俊
 *.uvoptx
