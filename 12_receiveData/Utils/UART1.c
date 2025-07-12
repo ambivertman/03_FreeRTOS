@@ -39,7 +39,6 @@ void USART1_SendByte(uint8_t Byte) {
 
 
 void printf1(char* format, ...) {
-	// 加锁
 	char strs[100];
 
 	// 替换内容 -> 存储到strs
@@ -52,7 +51,7 @@ void printf1(char* format, ...) {
 	for (uint8_t i = 0; strs[i] != '\0'; i++) {
 		USART1_SendByte(strs[i]);
 	}
-	// 解锁
+
 }
 
 
@@ -71,8 +70,15 @@ void USART1_NVIC_Init(void) {
 }
 
 void USART1_IRQHandler(void) {
+	// printf1("irq is running\r\n");
+	/*如果在这里加上一个调试输出, 那么硬件的工作逻辑是
+	1.接收到第一次字符, 触发中断
+	2.通过串口输出调试信息,串口被占用,导致后续数据丢失
+	3.最后导致每次输入一次只能接收一个字符
+	*/
 	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
 		char data = USART_ReceiveData(USART1);
+		printf1("%c", data);
 		Buffer[strlen(Buffer)] = data;
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
 	}
