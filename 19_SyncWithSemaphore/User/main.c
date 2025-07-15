@@ -13,32 +13,36 @@ void Devices_Init(void);
 void task1(void* arg) {
 
 	while (1) {
-		if (xSemaphoreTake(xBinarySemaphore, NULL) == pdTRUE) {
-			// 控制灯亮
-			GPIO_SetBits(GPIOA, GPIO_Pin_1);
-			vTaskDelay(1000);
 
-			// 控制灯灭
-			GPIO_ResetBits(GPIOA, GPIO_Pin_1);
-			xSemaphoreGive(xBinarySemaphore);
-			vTaskDelay(1000);
-		}
+		// 控制灯亮
+		GPIO_SetBits(GPIOA, GPIO_Pin_1);
+		xSemaphoreGive(xBinarySemaphore);
+		vTaskDelay(1000);
+
+		// 控制灯灭
+		GPIO_ResetBits(GPIOA, GPIO_Pin_1);
+		xSemaphoreGive(xBinarySemaphore);
+		vTaskDelay(1000);
 	}
 }
 
 void task2(void* arg) {
+	BaseType_t toggle = 0;
 
 	while (1) {
-		if (xSemaphoreTake(xBinarySemaphore, NULL) == pdTRUE) {
-			GPIO_ResetBits(GPIOA, GPIO_Pin_2);
-			vTaskDelay(1000);
-
-			GPIO_SetBits(GPIOA, GPIO_Pin_2);
-			xSemaphoreGive(xBinarySemaphore);
-			vTaskDelay(1000);
+		if (xSemaphoreTake(xBinarySemaphore, portMAX_DELAY) == pdTRUE) {
+			if (toggle == 0) {
+				GPIO_SetBits(GPIOA, GPIO_Pin_2);
+				toggle = 1;
+			}
+			else {
+				GPIO_ResetBits(GPIOA, GPIO_Pin_2);
+				toggle = 0;
+			}
 		}
 	}
 }
+
 
 
 int main(void) {
@@ -51,7 +55,6 @@ int main(void) {
 	xTaskCreate(task1, "Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
 	xTaskCreate(task2, "Task2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
 	xBinarySemaphore = xSemaphoreCreateBinary();
-	xSemaphoreGive(xBinarySemaphore);
 	vTaskStartScheduler();
 
 	while (1) {
